@@ -48,6 +48,27 @@
   .toolbar{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:10px}
   .countdown{font-variant-numeric:tabular-nums}
   .hidden{display:none !important}
+  /* Bottom Settings bar */
+.bottomBar{
+  position: sticky;
+  bottom: 0;
+  z-index: 6;
+  padding: 8px 14px calc(env(safe-area-inset-bottom) + 8px);
+  background: linear-gradient(180deg, rgba(11,11,15,0), rgba(11,11,15,.85) 40%, rgba(11,11,15,.95));
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid #1b1c2a;
+  backdrop-filter: blur(8px);
+}
+#settingsBtn{
+  background: linear-gradient(180deg,#272737,#1b1b28);
+  border: 1px solid #2b2c3d;
+  color: #f2f2f5;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-size: 14px;
+  min-width: 140px;
+}
 </style>
 </head>
 <body>
@@ -144,6 +165,19 @@ const diffStarsEl = document.getElementById('diffStars');
 const herStarsEl  = document.getElementById('herStars');
 const himStarsEl  = document.getElementById('himStars');
 
+// Settings button opens the same panel as Manage/Rig
+const settingsBtn = document.getElementById('settingsBtn');
+
+// Support either id, depending on your build:
+const rigSheetEl = document.getElementById('rigSheet');      // if you have a "rigSheet"
+const manageSheetEl = document.getElementById('manageSheet'); // in the simpler repo
+
+function openSettingsPanel(){
+  if (rigSheetEl) rigSheetEl.classList.remove('hidden');
+  if (manageSheetEl) manageSheetEl.classList.remove('hidden');
+}
+
+if (settingsBtn) settingsBtn.addEventListener('click', openSettingsPanel);
 /* ===== Small helpers ===== */
 function stars(n){return '★'.repeat(n||0) + '☆'.repeat(5-(n||0))}
 function getRatingFor(id){ if(!ratings[id]) ratings[id]={diff:0,her:0,him:0}; return ratings[id]; }
@@ -332,5 +366,8 @@ skipBtn.addEventListener('click', ()=>{
   buildReels();
 })();
 </script>
+<div class="bottomBar">
+  <button id="settingsBtn">⚙️ Settings</button>
+</div>
 </body>
 </html>
