@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>The Night’s Choice</title>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0b0b0f">
@@ -14,22 +14,25 @@
     --text:#f2f2f5; --muted:#a9abbb; --line:#24253a;
   }
   html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  /* Top bar */
   header{position:sticky;top:0;z-index:5;background:linear-gradient(180deg,rgba(11,11,15,.98),rgba(11,11,15,.7) 70%,rgba(11,11,15,0));backdrop-filter:blur(8px);border-bottom:1px solid #1b1c2a}
   .topbar{max-width:1100px;margin:0 auto;display:flex;gap:10px;align-items:center;justify-content:space-between;padding:calc(env(safe-area-inset-top) + 18px) 14px 12px}
-  .title-tappable{font-weight:700;letter-spacing:.4px;font-size:20px;padding:8px 10px;border-radius:8px}
+  .title{font-weight:700;letter-spacing:.4px;font-size:20px;padding:8px 10px;border-radius:8px}
   .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 
-  /* Upload control from your stable build */
-  label.upload{display:inline-flex;align-items:center;gap:8px;border:1px dashed #34354a;padding:8px 10px;border-radius:10px;background:var(--panel2);cursor:pointer}
-  input[type=file]{display:none}
+  /* Upload button with overlaid input for iOS reliability */
+  #uploadWrap{position:relative;overflow:hidden}
+  #uploadWrap input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;-webkit-appearance:none}
 
   button,select,textarea,input{background:var(--panel);color:var(--text);border:1px solid #222331;border-radius:10px;padding:10px 12px;font-size:14px}
   button.primary{background:linear-gradient(180deg,#272737,#1b1b28);border-color:#2b2c3d}
   button:disabled{opacity:.5}
   .pill{background:#1a1a28;border:1px solid #2a2b40;border-radius:999px;padding:6px 10px;font-size:12px;color:#ddd}
 
-  .wrap{max-width:1100px;margin:0 auto;padding:0 14px 60px}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 14px 80px}
   .machine{margin-top:14px;background:radial-gradient(1200px 600px at 50% -200px,#1a1a26,#0e0e14 70%);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 10px 40px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.02)}
+
+  /* Reels */
   .reels{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
   .reel{height:160px;background:linear-gradient(180deg,#151521,#0f0f16);border:1px solid #23243a;border-radius:12px;overflow:hidden;position:relative}
   .strip{position:absolute;inset:0;display:flex;flex-direction:column;gap:0;will-change:transform,filter}
@@ -40,49 +43,61 @@
   .reveal-big{margin-top:8px;border:1px solid #24253a;border-radius:14px;background:#0f0f15;min-height:42vh;display:grid;place-items:center;overflow:hidden}
   .reveal-big img{max-width:100%;max-height:100%;display:block}
 
-  /* NEW: Stars below reveal */
+  /* Stars below reveal */
   .reveal-stars{margin:10px auto 0;max-width:680px;display:grid;gap:6px}
   .reveal-stars .line{display:flex;align-items:center;gap:10px;justify-content:center;font-size:13px;color:var(--muted)}
   .reveal-stars .stars{font-size:16px;letter-spacing:1px;cursor:pointer}
 
   .toolbar{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:10px}
   .countdown{font-variant-numeric:tabular-nums}
+  .hint{font-size:12px;color:var(--muted)}
   .hidden{display:none !important}
+
+  /* Settings (Manage) sheet */
+  .sheet.hidden{display:none!important}
+  .sheet{position:fixed;inset:0;z-index:9999}
+  .sheet .backdrop{position:absolute;inset:0;background:rgba(0,0,0,.6)}
+  .sheet .panel{
+    position:absolute;inset:auto 0 0 0;
+    max-height:min(92vh,820px);
+    background:linear-gradient(180deg,#13131c,#0c0c12);
+    color:var(--text);border-top-left-radius:16px;border-top-right-radius:16px;
+    border:1px solid #27283c;border-bottom:none;
+    padding-bottom:env(safe-area-inset-bottom);
+    box-shadow:0 -20px 60px rgba(0,0,0,.5)
+  }
+  .sheet header{position:sticky;top:0;padding:calc(env(safe-area-inset-top) + 10px) 14px 12px;border-bottom:1px solid #27283c;background:#12121b;display:flex;gap:10px;align-items:center;z-index:2}
+  .sheet .x{margin-left:auto;min-width:44px;min-height:38px;border-radius:10px}
+  .sheet .body{padding:12px 14px;max-height:70vh;overflow:auto}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+  .card{position:relative;border:1px solid #2a2b40;background:#12121b;border-radius:10px;overflow:hidden}
+  .card img{width:100%;height:110px;object-fit:cover;display:block}
+  .card .meta{padding:6px 8px;font-size:12px;display:grid;gap:6px}
+
   /* Bottom Settings bar */
-.bottomBar{
-  position: sticky;
-  bottom: 0;
-  z-index: 6;
-  padding: 8px 14px calc(env(safe-area-inset-bottom) + 8px);
-  background: linear-gradient(180deg, rgba(11,11,15,0), rgba(11,11,15,.85) 40%, rgba(11,11,15,.95));
-  display: flex;
-  justify-content: center;
-  border-top: 1px solid #1b1c2a;
-  backdrop-filter: blur(8px);
-}
-#settingsBtn{
-  background: linear-gradient(180deg,#272737,#1b1b28);
-  border: 1px solid #2b2c3d;
-  color: #f2f2f5;
-  border-radius: 12px;
-  padding: 12px 18px;
-  font-size: 14px;
-  min-width: 140px;
-}
+  .bottomBar{
+    position:sticky;bottom:0;z-index:6;
+    padding:8px 14px calc(env(safe-area-inset-bottom) + 8px);
+    background:linear-gradient(180deg, rgba(11,11,15,0), rgba(11,11,15,.85) 40%, rgba(11,11,15,.95));
+    display:flex;justify-content:center;border-top:1px solid #1b1c2a;backdrop-filter:blur(8px)
+  }
+  #settingsBtn{
+    background:linear-gradient(180deg,#272737,#1b1b28);
+    border:1px solid #2b2c3d;color:#f2f2f5;border-radius:12px;padding:12px 18px;font-size:14px;min-width:140px
+  }
 </style>
 </head>
 <body>
 <header>
   <div class="topbar">
-    <div class="title-tappable">The Night’s Choice</div>
+    <div class="title">The Night’s Choice</div>
     <div class="controls">
-      <!-- Upload (kept from working build) -->
-      <label class="upload">
-        ➕ Upload
+      <!-- Upload (native input overlays button for iOS PWA reliability) -->
+      <button class="pill" id="uploadWrap">➕ Upload
         <input id="fileInput" type="file" accept="image/*" multiple>
-      </label>
+      </button>
 
-      <!-- NEW: Restrict by category -->
+      <!-- Restrict by category -->
       <label class="pill" style="display:flex;align-items:center;gap:6px">
         🎯
         <select id="mainRestrict" title="Restrict Category"></select>
@@ -120,7 +135,7 @@
       <img id="revealImg" alt="">
     </div>
 
-    <!-- NEW: meters -->
+    <!-- 3 star meters -->
     <div class="reveal-stars">
       <div class="line"><span>Difficulty</span> <span id="diffStars" class="stars">☆☆☆☆☆</span></div>
       <div class="line"><span>Her-O</span>      <span id="herStars"  class="stars">☆☆☆☆☆</span></div>
@@ -134,71 +149,75 @@
   </section>
 </div>
 
-<script>
-/* ===== Basic config kept minimal ===== */
-const CATEGORIES = ["Missionary","Woman-on-top","Oral for Her","Oral for Him","Sitting","Standing","Side-by-Side","Deep Penetration","69","Rear Entry","BDSM for Lovers","Adventurous"];
-const SPIN_DURATION_MS = 6000;
+<!-- Settings / Manage Panel -->
+<div id="manageSheet" class="sheet hidden" aria-hidden="true">
+  <div id="manageBackdrop" class="backdrop"></div>
+  <div class="panel">
+    <header>
+      <strong>Manage Images</strong>
+      <button id="manageClose" class="x">✕</button>
+    </header>
+    <div class="body">
+      <div class="hint" style="margin-bottom:8px">Set <b>Name</b> and <b>Category</b>. Changes save automatically.</div>
+      <div id="grid" class="grid"></div>
+    </div>
+  </div>
+</div>
 
-/* ===== Storage keys ===== */
+<!-- Sticky bottom Settings button -->
+<div class="bottomBar">
+  <button id="settingsBtn">⚙️ Settings</button>
+</div>
+
+<script>
+/* ===== Config ===== */
+const CATEGORIES=["Missionary","Woman-on-top","Oral for Her","Oral for Him","Sitting","Standing","Side-by-Side","Deep Penetration","69","Rear Entry","BDSM for Lovers","Adventurous"];
+const SPIN_DURATION_MS=6000;
+
+/* ===== Storage Keys ===== */
 const DB_NAME='nights-choice-db', DB_STORE='images';
-const LSK_RIG_CAT='nc_rigCat';
-const LSK_RATINGS='nc_ratings';
-const LSK_TIMER='nc_timer';
+const LSK={ restrict:'nc_restrict', timer:'nc_timer', ratings:'nc_ratings' };
 
 /* ===== State ===== */
 let db, IMAGES=[], URLS=new Map();
-let rigCategory = JSON.parse(localStorage.getItem(LSK_RIG_CAT) || '""') || '';
-let ratings = JSON.parse(localStorage.getItem(LSK_RATINGS) || '{}'); // { id: {diff,her,him} }
-let timerMinutes = +JSON.parse(localStorage.getItem(LSK_TIMER) || '0') || 0;
+let restrictCat = lsGet(LSK.restrict,'')||'';
+let timerMinutes = +lsGet(LSK.timer,0)||0;
+let ratings = lsGet(LSK.ratings,{})||{}; // { [id]: {diff,her,him} }
 
-/* ===== UI refs ===== */
-const fileInput = document.getElementById('fileInput');
-const mainRestrict = document.getElementById('mainRestrict');
-const timerSelect = document.getElementById('timerSelect');
-const spinBtn = document.getElementById('spinBtn');
-const countdownEl = document.getElementById('countdown');
-const skipBtn = document.getElementById('skipBtn');
-const revealNameEl = document.getElementById('revealName');
-const revealBig = document.getElementById('revealBig');
-const revealImg = document.getElementById('revealImg');
-const diffStarsEl = document.getElementById('diffStars');
-const herStarsEl  = document.getElementById('herStars');
-const himStarsEl  = document.getElementById('himStars');
+/* ===== UI Refs ===== */
+const fileInput=q('#fileInput'), uploadWrap=q('#uploadWrap');
+const mainRestrict=q('#mainRestrict'), timerSelect=q('#timerSelect'), spinBtn=q('#spinBtn');
+const revealNameEl=q('#revealName'), revealBig=q('#revealBig'), revealImg=q('#revealImg');
+const diffStarsEl=q('#diffStars'), herStarsEl=q('#herStars'), himStarsEl=q('#himStars');
+const countdownEl=q('#countdown'), skipBtn=q('#skipBtn');
+const manageSheet=q('#manageSheet'), manageBackdrop=q('#manageBackdrop'), manageClose=q('#manageClose'), grid=q('#grid');
+const settingsBtn=q('#settingsBtn');
 
-// Settings button opens the same panel as Manage/Rig
-const settingsBtn = document.getElementById('settingsBtn');
-
-// Support either id, depending on your build:
-const rigSheetEl = document.getElementById('rigSheet');      // if you have a "rigSheet"
-const manageSheetEl = document.getElementById('manageSheet'); // in the simpler repo
-
-function openSettingsPanel(){
-  if (rigSheetEl) rigSheetEl.classList.remove('hidden');
-  if (manageSheetEl) manageSheetEl.classList.remove('hidden');
-}
-
-if (settingsBtn) settingsBtn.addEventListener('click', openSettingsPanel);
-/* ===== Small helpers ===== */
-function stars(n){return '★'.repeat(n||0) + '☆'.repeat(5-(n||0))}
+/* ===== Helpers ===== */
+function q(s,sc=document){return sc.querySelector(s)}
+function lsGet(k,f){try{const v=localStorage.getItem(k);return v?JSON.parse(v):f}catch{return f}}
+function lsSet(k,v){localStorage.setItem(k,JSON.stringify(v))}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}}
+function stars(n){return '★'.repeat(n||0)+'☆'.repeat(5-(n||0))}
 function getRatingFor(id){ if(!ratings[id]) ratings[id]={diff:0,her:0,him:0}; return ratings[id]; }
-function saveRatings(){ localStorage.setItem(LSK_RATINGS, JSON.stringify(ratings)); }
-function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] } }
+function saveRatings(){ lsSet(LSK.ratings,ratings); }
 
-/* ===== IndexedDB minimal ===== */
-function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=e=>{const db=e.target.result; if(!db.objectStoreNames.contains(DB_STORE)){const s=db.createObjectStore(DB_STORE,{keyPath:'id'}); s.createIndex('ts','ts');}}; r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);});}
+/* ===== DB ===== */
+function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=(e)=>{const db=e.target.result;if(!db.objectStoreNames.contains(DB_STORE)){const s=db.createObjectStore(DB_STORE,{keyPath:'id'});s.createIndex('ts','ts');}};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
 function dbAddMany(items){return new Promise((res,rej)=>{const tx=db.transaction(DB_STORE,'readwrite'),st=tx.objectStore(DB_STORE);items.forEach(it=>st.put(it));tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});}
 function dbGetAll(){return new Promise((res,rej)=>{const tx=db.transaction(DB_STORE,'readonly'),st=tx.objectStore(DB_STORE),rq=st.getAll();rq.onsuccess=()=>res(rq.result||[]);rq.onerror=()=>rej(rq.error);});}
+function dbUpdate(item){return new Promise((res,rej)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put(item);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});}
 
-/* ===== Build Restrict dropdown ===== */
+/* ===== Build Category Restrict ===== */
 function buildRestrict(){
   mainRestrict.innerHTML='';
   mainRestrict.appendChild(new Option('All categories',''));
   mainRestrict.appendChild(new Option('— Unassigned —','__UNASSIGNED__'));
   CATEGORIES.forEach(c=> mainRestrict.appendChild(new Option(c,c)));
-  mainRestrict.value = rigCategory || '';
+  mainRestrict.value = restrictCat || '';
   mainRestrict.addEventListener('change', ()=>{
-    rigCategory = mainRestrict.value;
-    localStorage.setItem(LSK_RIG_CAT, JSON.stringify(rigCategory));
+    restrictCat = mainRestrict.value;
+    lsSet(LSK.restrict, restrictCat);
   });
 }
 
@@ -211,71 +230,65 @@ fileInput.addEventListener('change', async (e)=>{
     if(!f.type.startsWith('image/')) continue;
     const id=crypto.randomUUID();
     const blob=f.slice(0,f.size,f.type);
-    items.push({id,blob,ts:Date.now(),category:'',weight:1,description:''});
+    items.push({id,blob,ts:Date.now(),category:'',name:''});
   }
   await dbAddMany(items);
-  await reloadImages();
-  buildReels();
+  await reloadImages(); buildReels(); renderGrid();
   fileInput.value='';
 });
 
-/* ===== Load images to memory + object URLs ===== */
+/* ===== Load + Reels ===== */
 async function reloadImages(){
   IMAGES = await dbGetAll();
   URLS.forEach(URL.revokeObjectURL); URLS.clear();
   IMAGES.forEach(it=> URLS.set(it.id, URL.createObjectURL(it.blob)));
 }
-
-/* ===== Reels ===== */
 function buildReels(){
   document.querySelectorAll('.strip').forEach((strip,i)=>{
     strip.innerHTML='';
-    if(!IMAGES.length){
-      const blank=document.createElement('div'); blank.className='cell'; blank.textContent='—';
-      strip.appendChild(blank); return;
-    }
+    if(!IMAGES.length){ const c=document.createElement('div'); c.className='cell'; c.textContent='—'; strip.appendChild(c); return; }
     for(let k=0;k<12;k++){
       const it=IMAGES[(k+i)%IMAGES.length];
       const cell=document.createElement('div'); cell.className='cell';
-      const img=new Image(); img.src=URLS.get(it.id);
-      cell.appendChild(img); strip.appendChild(cell);
+      const img=new Image(); img.src=URLS.get(it.id); cell.appendChild(img);
+      strip.appendChild(cell);
     }
   });
 }
 
-/* ===== Pick image with optional category restriction ===== */
-function pickImage(){
-  let pool = IMAGES.slice();
-  if(rigCategory){
-    if(rigCategory==='__UNASSIGNED__'){
-      pool = pool.filter(x => !(x.category||'').trim());
-    }else{
-      pool = pool.filter(x => (x.category||'')===rigCategory);
-    }
-    if(!pool.length) pool = IMAGES.slice(); // fallback if nothing matches
-  }
-  if(!pool.length) return null;
-  return pool[Math.floor(Math.random()*pool.length)];
+/* ===== Manage grid ===== */
+function renderGrid(){
+  grid.innerHTML='';
+  if(!IMAGES.length){ grid.innerHTML='<div class="hint">No images yet. Use ➕ Upload.</div>'; return; }
+  IMAGES.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).forEach(it=>{
+    const card=document.createElement('div'); card.className='card';
+    const img=new Image(); img.src=URLS.get(it.id);
+    const meta=document.createElement('div'); meta.className='meta';
+
+    const nameIn=document.createElement('input'); nameIn.placeholder='Name'; nameIn.value=it.name||''; nameIn.onchange=async()=>{ it.name=nameIn.value.trim(); await dbUpdate(it); if(revealImg.src && revealImg.src===URLS.get(it.id)) revealNameEl.textContent=it.name||it.category||''; };
+
+    const catSel=document.createElement('select'); catSel.appendChild(new Option('— Unassigned —','')); CATEGORIES.forEach(c=>catSel.appendChild(new Option(c,c))); catSel.value=it.category||''; catSel.onchange=async()=>{ it.category=catSel.value; await dbUpdate(it); if(revealImg.src && revealImg.src===URLS.get(it.id) && !it.name) revealNameEl.textContent=it.category||''; };
+
+    meta.append(nameIn,catSel);
+    card.append(img,meta);
+    grid.append(card);
+  });
 }
 
-/* ===== Spin / animation ===== */
+/* ===== Pick / Spin ===== */
 let spinning=false, blockUntil=0, timerId=null;
 spinBtn.addEventListener('click', ()=>{
-  if(spinning || Date.now()<blockUntil) return;
+  if(spinning||Date.now()<blockUntil) return;
   if(!IMAGES.length){ alert('Upload images first'); return; }
-
   spinning=true;
-  revealNameEl.textContent='';
-  revealBig.classList.add('hidden');
-  revealImg.removeAttribute('src');
+
+  revealNameEl.textContent=''; revealBig.classList.add('hidden'); revealImg.removeAttribute('src');
 
   const chosen = pickImage();
   if(!chosen){ spinning=false; return; }
 
-  // choose neighbors to look slot-like
-  let others = IMAGES.filter(x=>x.id!==chosen.id);
-  if(others.length<2) others = IMAGES.concat(IMAGES);
-  shuffle(others);
+  // Choose neighbors to mimic slot
+  let others=IMAGES.filter(x=>x.id!==chosen.id); if(others.length<2) others=IMAGES.concat(IMAGES); shuffle(others);
   const finals=[others[0], chosen, others[1]];
 
   const strips=[...document.querySelectorAll('.strip')];
@@ -297,77 +310,82 @@ spinBtn.addEventListener('click', ()=>{
     strip.style.transform='translateY(0px)';
     strip.style.filter='blur(6px) brightness(0.9)';
     const distance=CELLH*BASE;
-    requestAnimationFrame(()=>{ // ensure styles apply
-      strip.style.transition=`transform ${SPIN_DURATION_MS/1000}s ${ease}, filter ${SPIN_DURATION_MS/1000}s linear`;
-      strip.style.transform=`translateY(-${distance}px)`;
-    });
+    requestAnimationFrame(()=>{ strip.style.transition=`transform ${SPIN_DURATION_MS/1000}s ${ease}, filter ${SPIN_DURATION_MS/1000}s linear`; strip.style.transform=`translateY(-${distance}px)`; });
   });
 
   setTimeout(()=>{
     document.querySelectorAll('.strip').forEach(s=>s.style.filter='none');
 
-    // Reveal chosen
-    revealNameEl.textContent = chosen.description || chosen.category || '';
+    // Reveal
+    revealNameEl.textContent = chosen.name || chosen.category || '';
     revealImg.src = URLS.get(chosen.id);
     revealBig.classList.remove('hidden');
 
-    // Show meters for this image
-    const r = getRatingFor(chosen.id);
-    diffStarsEl.textContent = stars(r.diff);
-    herStarsEl.textContent  = stars(r.her);
-    himStarsEl.textContent  = stars(r.him);
+    // Ratings
+    const r=getRatingFor(chosen.id);
+    diffStarsEl.textContent=stars(r.diff);
+    herStarsEl.textContent =stars(r.her);
+    himStarsEl.textContent =stars(r.him);
 
-    // Tap to set stars
-    function attach(el,key){
-      el.onclick=(evt)=>{
-        const rect=el.getBoundingClientRect();
-        const rel=(evt.clientX - rect.left)/rect.width; // 0..1
-        const val=Math.min(5, Math.max(1, Math.ceil(rel*5)));
-        const rr=getRatingFor(chosen.id);
-        rr[key]=val; saveRatings();
-        el.textContent=stars(val);
-      };
-    }
-    attach(diffStarsEl,'diff'); attach(herStarsEl,'her'); attach(himStarsEl,'him');
+    // Click-to-set for this chosen image
+    attachStarSetter(diffStarsEl,'diff',chosen.id);
+    attachStarSetter(herStarsEl,'her',chosen.id);
+    attachStarSetter(himStarsEl,'him',chosen.id);
 
     spinning=false;
     if(timerMinutes>0) startCountdown(timerMinutes);
   }, SPIN_DURATION_MS + 60);
 });
-
-/* ===== Timer + Skip ===== */
-timerSelect.value=String(timerMinutes);
-timerSelect.addEventListener('change',()=>{ timerMinutes=+timerSelect.value; localStorage.setItem(LSK_TIMER, JSON.stringify(timerMinutes)); });
-
-function startCountdown(mins){
-  const end=Date.now() + mins*60*1000;
-  blockUntil=end; spinBtn.disabled=true; skipBtn.style.display='inline-flex';
-  if(timerId) clearInterval(timerId);
-  timerId=setInterval(()=>{
-    const r=end-Date.now();
-    if(r<=0){
-      clearInterval(timerId); timerId=null; spinBtn.disabled=false; blockUntil=0; countdownEl.textContent=''; skipBtn.style.display='none';
-    }else{
-      const s=Math.ceil(r/1000), m=Math.floor(s/60), ss=String(s%60).padStart(2,'0');
-      countdownEl.textContent = `Next spin in ${m}:${ss}`;
-    }
-  }, 250);
+function pickImage(){
+  let pool=IMAGES.slice();
+  if(restrictCat){
+    if(restrictCat==='__UNASSIGNED__') pool=pool.filter(i=>!(i.category||'').trim());
+    else pool=pool.filter(i=>(i.category||'')===restrictCat);
+    if(!pool.length) pool=IMAGES.slice();
+  }
+  if(!pool.length) return null;
+  return pool[Math.floor(Math.random()*pool.length)];
 }
-skipBtn.addEventListener('click', ()=>{
+
+/* ===== Stars ===== */
+function attachStarSetter(el,key,id){
+  el.onclick=(evt)=>{
+    const rect=el.getBoundingClientRect();
+    const rel=(evt.clientX-rect.left)/rect.width;
+    const val=Math.min(5,Math.max(1,Math.ceil(rel*5)));
+    const rr=getRatingFor(id); rr[key]=val; saveRatings();
+    el.textContent=stars(val);
+  };
+}
+
+/* ===== Timer / Skip ===== */
+timerSelect.value=String(timerMinutes);
+timerSelect.addEventListener('change',()=>{ timerMinutes=+timerSelect.value; lsSet(LSK.timer,timerMinutes); });
+function startCountdown(mins){
+  const end=Date.now()+mins*60*1000; blockUntil=end; spinBtn.disabled=true; skipBtn.style.display='inline-flex';
   if(timerId) clearInterval(timerId);
-  timerId=null; blockUntil=0; spinBtn.disabled=false; countdownEl.textContent=''; skipBtn.style.display='none';
-});
+  timerId=setInterval(()=>{ const r=end-Date.now(); if(r<=0){ clearInterval(timerId); timerId=null; spinBtn.disabled=false; blockUntil=0; countdownEl.textContent=''; skipBtn.style.display='none'; } else { const s=Math.ceil(r/1000), m=Math.floor(s/60), ss=String(s%60).padStart(2,'0'); countdownEl.textContent=`Next spin in ${m}:${ss}`; } }, 250);
+}
+skipBtn.addEventListener('click',()=>{ if(timerId) clearInterval(timerId); timerId=null; blockUntil=0; spinBtn.disabled=false; countdownEl.textContent=''; skipBtn.style.display='none'; });
+
+/* ===== Settings panel open/close ===== */
+settingsBtn.addEventListener('click',()=> manageSheet.classList.remove('hidden'));
+manageBackdrop.addEventListener('click',()=> manageSheet.classList.add('hidden'));
+manageClose.addEventListener('click',()=> manageSheet.classList.add('hidden'));
 
 /* ===== Boot ===== */
 (async function(){
-  db = await openDB();
-  buildRestrict();
-  await reloadImages();
-  buildReels();
+  try{
+    db=await openDB();
+    buildRestrict();
+    await reloadImages();
+    buildReels();
+    renderGrid();
+  }catch(e){
+    console.error(e);
+    alert('Storage init failed. Try Safari > Settings > Clear History & Website Data, then reload.');
+  }
 })();
 </script>
-<div class="bottomBar">
-  <button id="settingsBtn">⚙️ Settings</button>
-</div>
 </body>
 </html>
