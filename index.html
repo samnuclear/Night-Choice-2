@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Night’s Choice</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b0b0f">
+<style>
+  :root{
+    --bg:#0b0b0f; --panel:#13131a; --panel2:#181824;
+    --accent:#d79ab8; --accent2:#7ad1cc;
+    --text:#f2f2f5; --muted:#a9abbb; --line:#24253a;
+  }
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  /* Top bar */
+  header{position:sticky;top:0;z-index:5;background:linear-gradient(180deg,rgba(11,11,15,.98),rgba(11,11,15,.7) 70%,rgba(11,11,15,0));backdrop-filter:blur(8px);border-bottom:1px solid #1b1c2a}
+  .topbar{position:relative;max-width:1100px;margin:0 auto;display:flex;gap:10px;align-items:center;justify-content:space-between;touch-action:manipulation;padding:calc(env(safe-area-inset-top) + 14px) 14px 10px}
+  .title-wrap{display:flex;align-items:center;gap:8px}
+  .title-tappable{-webkit-user-select:none;user-select:none;font-weight:700;letter-spacing:.3px;font-size:19px;padding:6px 8px;border-radius:8px}
+  .rig-mini{width:6px;height:6px;border-radius:999px;border:1px solid #2a2b40;background:#1a1a28;opacity:.7;display:inline-block;margin-top:4px}
+  .rig-mini:active{transform:scale(.9);opacity:1}
+  .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  button,select,textarea,input{background:var(--panel);color:var(--text);border:1px solid #222331;border-radius:10px;padding:10px 12px;font-size:14px}
+  button.primary{background:linear-gradient(180deg,#272737,#1b1b28);border-color:#2b2c3d}
+  button:disabled{opacity:.5}
+  .pill{background:#1a1a28;border:1px solid #2a2b40;border-radius:999px;padding:6px 10px;font-size:12px;color:#ddd}
+  /* Upload: input overlays button so iOS PWA always fires the picker */
+  #uploadWrap{position:relative;overflow:hidden}
+  #uploadWrap input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;-webkit-appearance:none}
+
+  .wrap{max-width:1100px;margin:0 auto;padding:0 14px 60px}
+  .machine{margin-top:12px;background:radial-gradient(1200px 600px at 50% -200px,#1a1a26,#0e0e14 70%);border:1px solid var(--line);border-radius:18px;padding:12px;box-shadow:0 10px 40px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.02)}
+  .reels{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .reel{height:156px;background:linear-gradient(180deg,#151521,#0f0f16);border:1px solid #23243a;border-radius:12px;overflow:hidden;position:relative}
+  .strip{position:absolute;inset:0;display:flex;flex-direction:column;gap:0;will-change:transform,filter}
+  .cell{height:156px;display:flex;align-items:center;justify-content:center}
+  .cell img{height:100%;width:100%;object-fit:cover;border-radius:10px}
+
+  .reveal-name{margin-top:10px;text-align:center;font-weight:700;color:var(--accent)}
+  .reveal-big{margin-top:8px;border:1px solid #24253a;border-radius:14px;background:#0f0f15;min-height:42vh;display:grid;place-items:center;overflow:hidden}
+  .reveal-big img{max-width:100%;max-height:100%;display:block}
+
+  /* Stars under the reveal */
+  .reveal-stars{margin:10px auto 0;max-width:680px;display:grid;gap:6px}
+  .line{display:flex;align-items:center;gap:10px;justify-content:center;font-size:13px;color:var(--muted)}
+  .stars{font-size:16px;letter-spacing:1px}
+
+  .toolbar{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:10px}
+  .countdown{font-variant-numeric:tabular-nums}
+  .hidden{display:none !important}
+
+  /* Rig sheet (PWA-safe) */
+  .sheet.hidden{display:none!important}
+  .sheet{position:fixed;inset:0;z-index:9999}
+  .sheet .backdrop{position:absolute;inset:0;background:rgba(0,0,0,.6)}
+  .sheet .panel{
+    position:absolute;inset:auto 0 0 0;
+    max-height:min(92vh,820px);
+    background:linear-gradient(180deg,#13131c,#0c0c12);
+    color:var(--text);border-top-left-radius:16px;border-top-right-radius:16px;
+    border:1px solid #27283c;border-bottom:none;
+    padding-bottom:env(safe-area-inset-bottom);
+    box-shadow:0 -20px 60px rgba(0,0,0,.5)
+  }
+  .sheet header{position:sticky;top:0;padding:calc(env(safe-area-inset-top) + 10px) 14px 12px;border-bottom:1px solid #27283c;background:#12121b;display:flex;gap:10px;align-items:center;z-index:2}
+  .sheet .x{margin-left:auto;min-width:44px;min-height:38px;border-radius:10px}
+  .sheet .body{padding:12px 14px;max-height:70vh;overflow:auto}
+
+  .section{background:#161625;border:1px solid #27283c;border-radius:12px;margin-bottom:10px}
+  .section>.hdr{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #27283c}
+  .section>.hdr button.toggle{margin-left:auto}
+  .section .inner{padding:10px 12px}
+  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .rig-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+  .rig-item{position:relative;border:1px solid #2a2b40;background:#12121b;border-radius:10px;overflow:hidden}
+  .rig-item img{width:100%;height:110px;object-fit:cover;display:block}
+  .rig-item .meta{padding:6px 8px;font-size:12px;display:grid;gap:6px}
+  .tag{position:absolute;left:6px;top:6px;background:#1a1a28;border:1px solid #2a2b40;border-radius:999px;padding:2px 6px;font-size:11px}
+  .exclude-btn{position:absolute;right:6px;top:6px;border-radius:999px;padding:2px 6px;font-size:11px}
+  .hint{font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <div class="topbar">
+    <div class="title-wrap">
+      <div id="titleTap" class="title-tappable">The Night’s Choice</div>
+      <button id="rigMini" class="rig-mini" aria-label="Rig menu"></button>
+    </div>
+    <div class="controls">
+      <!-- Upload with overlaid input (reliable in PWA) -->
+      <button class="pill" id="uploadWrap">➕ Upload
+        <input id="fileInput" type="file" accept="image/*" multiple>
+      </button>
+
+      <!-- Timer -->
+      <label class="pill" style="display:flex;align-items:center;gap:6px">
+        ⏱️
+        <select id="timerSelect" title="Timer">
+          <option value="0">Off</option><option value="1">1 min</option>
+          <option value="2">2 min</option><option value="3">3 min</option>
+          <option value="4">4 min</option><option value="5">5 min</option>
+        </select>
+      </label>
+
+      <!-- Restrict Category -->
+      <label class="pill" style="display:flex;align-items:center;gap:6px">
+        🎯
+        <select id="mainRestrict" title="Restrict Category"></select>
+      </label>
+
+      <button id="spinBtn" class="primary">🎰 Spin</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="machine">
+    <div class="reels" id="reels">
+      <div class="reel"><div class="strip"></div></div>
+      <div class="reel"><div class="strip"></div></div>
+      <div class="reel"><div class="strip"></div></div>
+    </div>
+
+    <div id="revealName" class="reveal-name"></div>
+
+    <div id="revealBig" class="reveal-big hidden">
+      <img id="revealImg" alt="">
+    </div>
+
+    <div class="reveal-stars">
+      <div class="line"><span>Difficulty</span> <span id="diffStars" class="stars">☆☆☆☆☆</span></div>
+      <div class="line"><span>Her-O</span> <span id="herStars" class="stars">☆☆☆☆☆</span></div>
+      <div class="line"><span>His-O</span> <span id="himStars" class="stars">☆☆☆☆☆</span></div>
+    </div>
+
+    <div class="toolbar">
+      <span id="countdown" class="countdown hint"></span>
+      <button id="skipBtn" class="pill" style="display:none">Skip</button>
+    </div>
+  </section>
+</div>
+
+<!-- Rig SHEET -->
+<div id="rigSheet" class="sheet hidden" aria-hidden="true">
+  <div id="rigBackdrop" class="backdrop"></div>
+  <div class="panel">
+    <header>
+      <strong>Rig Control</strong>
+      <button id="rigClose" class="x">✕</button>
+    </header>
+    <div class="body">
+      <div class="section">
+        <div class="hdr"><strong>Controls</strong><button class="toggle" data-target="controlsInner">▼</button></div>
+        <div class="inner" id="controlsInner">
+          <div class="row">
+            <button id="muteToggle" class="pill">Toggle mute</button>
+            <span id="muteState" class="hint">Sound on</span>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <label>Restrict</label>
+            <select id="rigCategory"></select>
+            <button id="rigClearCat" class="pill">Clear</button>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <input id="queueId" type="text" placeholder="Add by Image ID" style="flex:1;min-width:160px">
+            <button id="queueAddId" class="pill">Add</button>
+            <button id="queueClear" class="pill">Clear queue</button>
+          </div>
+          <div id="queueView" class="row" style="gap:6px;flex-wrap:wrap"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="hdr"><strong>Bulk tools</strong><button class="toggle" data-target="bulkInner">▼</button></div>
+        <div class="inner" id="bulkInner">
+          <div class="row">
+            <label>Filter:</label>
+            <select id="filterSelect">
+              <option value="">All</option><option value="uncategorized">Uncategorized</option>
+              <option value="unnamed">Unnamed</option><option value="excluded">Excluded (w=0)</option>
+            </select>
+            <select id="filterCategory"><option value="">Category…</option></select>
+            <select id="sortSelect"><option value="newest">Newest</option><option value="oldest">Oldest</option><option value="name">Name A→Z</option><option value="category">Category A→Z</option></select>
+          </div>
+          <div class="row" style="margin-top:6px">
+            <label>Set category:</label>
+            <select id="fastTagCategory"></select>
+            <button id="applySetCategory" class="pill">Apply to filtered</button>
+            <button id="applyIncludeAll" class="pill">Include (w=1)</button>
+            <button id="applyExcludeAll" class="pill">Exclude (w=0)</button>
+          </div>
+          <div class="row" style="margin-top:6px">
+            <input id="fastTagName" placeholder="Name (optional)">
+            <label class="pill" style="display:flex;gap:6px;align-items:center"><input id="fastTagEnable" type="checkbox"> Tap cards to apply</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="hdr"><strong>Images</strong><span class="hint" id="gridCount"></span></div>
+        <div class="inner"><div id="rigGrid" class="rig-grid"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== Config ===== */
+const CATEGORIES=["Missionary","Woman-on-top","Oral for Her","Oral for Him","Sitting","Standing","Side-by-Side","Deep Penetration","69","Rear Entry","BDSM for Lovers","Adventurous"];
+const DEFAULT_WEIGHT=1, SPIN_DURATION_MS=6000, PIN="1616";
+
+/* ===== Storage Keys ===== */
+const DB_NAME='nights-choice-db', DB_STORE='images';
+const LSK={ mute:'nc_mute', rigCat:'nc_rigCat', weights:'nc_weights', queue:'nc_queue', categories:'nc_categories', descriptions:'nc_desc', timer:'nc_timer', ratings:'nc_ratings' };
+
+/* ===== State ===== */
+let db, IMAGES=[], OBJECT_URLS=new Map();
+let isMuted=!!lsGet(LSK.mute,false);
+let rigCategory=lsGet(LSK.rigCat,'')||'';
+let rigQueue=lsGet(LSK.queue,[])||[];
+let weightOverrides=lsGet(LSK.weights,{})||{};
+let categoryOverrides=lsGet(LSK.categories,{})||{};
+let descOverrides=lsGet(LSK.descriptions,{})||{};
+let ratings=lsGet(LSK.ratings,{})||{};
+let timerMinutes=+lsGet(LSK.timer,0)||0;
+
+/* ===== Audio ===== */
+let audioCtx=null;
+function ensureAudio(){ if(!audioCtx){ try{ audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }catch{} } }
+async function resumeAudio(){ try{ ensureAudio(); if(audioCtx && audioCtx.state!=='running') await audioCtx.resume(); }catch{} }
+function tone(freq,dur=0.4,type='sine',gain=0.5,when=0){ if(isMuted||!audioCtx)return; const o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.type=type;o.frequency.setValueAtTime(freq,audioCtx.currentTime+when); g.gain.setValueAtTime(0.0001,audioCtx.currentTime+when); g.gain.exponentialRampToValueAtTime(gain,audioCtx.currentTime+when+0.02); g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+when+dur); o.connect(g).connect(audioCtx.destination); o.start(audioCtx.currentTime+when); o.stop(audioCtx.currentTime+when+dur+0.05);}
+function playSpinStart(){ tone(220,0.65,'sawtooth',0.35); tone(660,0.2,'sawtooth',0.2,0.2); }
+function playTick(t=0){ tone(700,0.12,'triangle',0.3,t); }
+function playReveal(){ tone(330,0.5,'sine',0.5); tone(880,0.45,'sine',0.4,0.1); }
+async function playTimerChime(){ await resumeAudio(); tone(660,0.35,'sine',0.5,0); tone(990,0.35,'sine',0.5,0.2); }
+
+/* ===== UI Refs ===== */
+const fileInput=q('#fileInput'), uploadWrap=q('#uploadWrap');
+const reelsEl=q('#reels'), spinBtn=q('#spinBtn');
+const revealNameEl=q('#revealName'), revealBig=q('#revealBig'), revealImg=q('#revealImg');
+const diffStarsEl=q('#diffStars'), herStarsEl=q('#herStars'), himStarsEl=q('#himStars');
+const countdownEl=q('#countdown'), skipBtn=q('#skipBtn');
+const timerSelect=q('#timerSelect'), mainRestrict=q('#mainRestrict');
+const rigSheet=q('#rigSheet'), rigBackdrop=q('#rigBackdrop'), rigClose=q('#rigClose');
+const titleTap=q('#titleTap'), rigMini=q('#rigMini');
+
+const rigGrid=q('#rigGrid'), rigCategorySel=q('#rigCategory'), queueView=q('#queueView');
+const queueId=q('#queueId'), queueAddId=q('#queueAddId'), queueClear=q('#queueClear');
+const muteToggle=q('#muteToggle'), muteState=q('#muteState');
+const fastTagCategory=q('#fastTagCategory'), fastTagName=q('#fastTagName'), fastTagEnable=q('#fastTagEnable');
+const filterSelect=q('#filterSelect'), filterCategory=q('#filterCategory'), sortSelect=q('#sortSelect');
+const applySetCategory=q('#applySetCategory'), applyIncludeAll=q('#applyIncludeAll'), applyExcludeAll=q('#applyExcludeAll');
+const gridCount=q('#gridCount');
+
+/* ===== DB ===== */
+function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,2);r.onupgradeneeded=(e)=>{const db=e.target.result;if(!db.objectStoreNames.contains(DB_STORE)){const s=db.createObjectStore(DB_STORE,{keyPath:'id'});s.createIndex('category','category');s.createIndex('ts','ts');} };r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+function dbAddMany(items){return new Promise((res,rej)=>{const tx=db.transaction(DB_STORE,'readwrite'),st=tx.objectStore(DB_STORE);items.forEach(it=>st.put(it));tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});}
+function dbGetAll(){return new Promise((res,rej)=>{const tx=db.transaction(DB_STORE,'readonly'),st=tx.objectStore(DB_STORE),rq=st.getAll();rq.onsuccess=()=>res(rq.result||[]);rq.onerror=()=>rej(rq.error);});}
+function dbUpdate(item){return new Promise((res,rej)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put(item);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});}
+
+/* ===== Helpers ===== */
+function q(s,sc=document){return sc.querySelector(s)}
+function qAll(arr){return arr.map(s=>q(s))}
+function lsGet(k,f){try{const v=localStorage.getItem(k);return v?JSON.parse(v):f}catch{return f}}
+function lsSet(k,v){localStorage.setItem(k,JSON.stringify(v))}
+function toast(msg,danger=false){const t=document.createElement('div');t.textContent=msg;Object.assign(t.style,{position:'fixed',left:'50%',bottom:'24px',transform:'translateX(-50%)',background:danger?'#491a23':'#1a1a28',border:'1px solid #2a2b40',padding:'10px 14px',borderRadius:'999px',zIndex:9999,boxShadow:'0 10px 30px rgba(0,0,0,.4)'});document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s'},1200);setTimeout(()=>t.remove(),1600)}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+function stars(n){ n=Math.max(0,Math.min(5,n||0)); return '★'.repeat(n)+'☆'.repeat(5-n); }
+
+/* ===== Init ===== */
+(async function init(){
+  db=await openDB();
+
+  // Build Restrict + pickers
+  function fillRestrict(sel){
+    sel.innerHTML=''; sel.appendChild(new Option('All categories','')); sel.appendChild(new Option('— Unassigned —','__UNASSIGNED__'));
+    CATEGORIES.forEach(c=>sel.appendChild(new Option(c,c)));
+  }
+  fillRestrict(mainRestrict);
+  rigCategorySel.appendChild(new Option('All categories',''));
+  CATEGORIES.forEach(c=>rigCategorySel.appendChild(new Option(c,c)));
+  function addUnassignedFirst(sel){ sel.innerHTML=''; sel.appendChild(new Option('— Unassigned —','')); CATEGORIES.forEach(c=>sel.appendChild(new Option(c,c))); }
+  addUnassignedFirst(fastTagCategory); addUnassignedFirst(filterCategory);
+
+  // Restore
+  mainRestrict.value=rigCategory; rigCategorySel.value=(rigCategory==='__UNASSIGNED__')?'':rigCategory;
+  timerSelect.value=String(timerMinutes);
+  muteState.textContent=isMuted?'Muted':'Sound on';
+
+  // Upload: stop bubbling so gestures never trigger
+  ['click','touchstart','touchend'].forEach(evt=> uploadWrap.addEventListener(evt,(e)=>e.stopPropagation(),{passive:true}));
+  fileInput.addEventListener('change', handleUpload);
+
+  // Timer
+  timerSelect.addEventListener('change',()=>{ timerMinutes=+timerSelect.value; lsSet(LSK.timer,timerMinutes); });
+
+  // Rig sheet close/backdrop
+  rigClose.addEventListener('click', ()=>rigSheet.classList.add('hidden'));
+  rigBackdrop.addEventListener('click', ()=>rigSheet.classList.add('hidden'));
+
+  // Collapsers
+  document.querySelectorAll('.toggle').forEach(b=>b.addEventListener('click',()=>{
+    const t=document.getElementById(b.dataset.target); if(!t)return; const hid=t.classList.toggle('hidden'); b.textContent=hid?'▲':'▼';
+  }));
+
+  // Filters + restriction sync
+  qAll(['#filterSelect','#filterCategory','#sortSelect']).forEach(el=>el.addEventListener('change',renderRig));
+  q('#rigClearCat').addEventListener('click',()=>{ rigCategory=''; rigCategorySel.value=''; mainRestrict.value=''; lsSet(LSK.rigCat,rigCategory); toast('Restriction cleared'); });
+  rigCategorySel.addEventListener('change',()=>{ rigCategory=rigCategorySel.value||''; mainRestrict.value=rigCategory; lsSet(LSK.rigCat,rigCategory); });
+  mainRestrict.addEventListener('change',()=>{ rigCategory=mainRestrict.value; rigCategorySel.value=(rigCategory==='__UNASSIGNED__')?'':rigCategory; lsSet(LSK.rigCat,rigCategory); });
+
+  // Sound
+  muteToggle.addEventListener('click',()=>{ isMuted=!isMuted; lsSet(LSK.mute,isMuted); muteState.textContent=isMuted?'Muted':'Sound on'; });
+
+  // Queue
+  queueAddId.addEventListener('click',()=>{ const id=queueId.value.trim(); if(!id)return; rigQueue.push(id); lsSet(LSK.queue,rigQueue); queueId.value=''; renderQueue(); });
+  queueClear.addEventListener('click',()=>{ rigQueue.length=0; lsSet(LSK.queue,rigQueue); renderQueue(); });
+
+  // Title gesture (PIN via prompt)
+  secretAccessOnTitle();
+  // Mini dot: instant open
+  rigMini.addEventListener('click', ()=>rigSheet.classList.remove('hidden'));
+
+  await reloadImages(); buildReels(); renderRig(); renderQueue();
+})();
+
+/* ===== Upload ===== */
+async function handleUpload(ev){
+  const files=[...ev.target.files]; if(!files.length) return;
+  const toAdd=[];
+  for(const f of files){
+    if(!f.type.startsWith('image/')) continue;
+    const id=crypto.randomUUID(), blob=f.slice(0,f.size,f.type);
+    const it={id,blob,category:'',weight:DEFAULT_WEIGHT,ts:Date.now(),description:'',diff:0,her:0,him:0};
+    toAdd.push(it);
+  }
+  await dbAddMany(toAdd);
+  toAdd.forEach(it=>{ categoryOverrides[it.id]=''; weightOverrides[it.id]=DEFAULT_WEIGHT; descOverrides[it.id]=''; ratings[it.id]={diff:0,her:0,him:0}; });
+  lsSet(LSK.categories,categoryOverrides); lsSet(LSK.weights,weightOverrides); lsSet(LSK.descriptions,descOverrides); lsSet(LSK.ratings,ratings);
+  await reloadImages(); buildReels(); renderRig(); fileInput.value='';
+}
+
+/* ===== Load/Render ===== */
+async function reloadImages(){
+  IMAGES=await dbGetAll();
+  IMAGES.forEach(it=>{
+    if(weightOverrides[it.id]!=null) it.weight=weightOverrides[it.id];
+    if(categoryOverrides[it.id]!==undefined) it.category=categoryOverrides[it.id];
+    if(descOverrides[it.id]!==undefined) it.description=descOverrides[it.id];
+    if(ratings[it.id]) Object.assign(it,ratings[it.id]);
+  });
+  OBJECT_URLS.forEach(URL.revokeObjectURL); OBJECT_URLS.clear();
+  IMAGES.forEach(it=>OBJECT_URLS.set(it.id, URL.createObjectURL(it.blob)));
+}
+function buildReels(){
+  document.querySelectorAll('.strip').forEach((strip,i)=>{
+    strip.innerHTML='';
+    const pool=IMAGES.length?IMAGES.slice():[];
+    if(!pool.length){ const c=document.createElement('div'); c.className='cell'; c.textContent='—'; strip.appendChild(c); return; }
+    for(let k=0;k<12;k++){
+      const it=pool[(k+i)%pool.length];
+      const cell=document.createElement('div'); cell.className='cell';
+      const img=new Image(); img.src=OBJECT_URLS.get(it.id); cell.appendChild(img);
+      strip.appendChild(cell);
+    }
+  });
+}
+function getFilteredImages(){
+  const status=filterSelect.value, cat=filterCategory.value, sort=sortSelect.value;
+  let list=IMAGES.slice();
+  if(status==='uncategorized') list=list.filter(x=>!(x.category||'').trim());
+  if(status==='unnamed') list=list.filter(x=>!(x.description||'').trim());
+  if(status==='excluded') list=list.filter(x=>(x.weight??DEFAULT_WEIGHT)==0);
+  if(filterCategory.selectedIndex>0 || cat==='') list=list.filter(x=>(x.category||'')===cat);
+  if(sort==='newest') list.sort((a,b)=>(b.ts||0)-(a.ts||0));
+  if(sort==='oldest') list.sort((a,b)=>(a.ts||0)-(b.ts||0));
+  if(sort==='name') list.sort((a,b)=>(a.description||'').localeCompare(b.description||''));
+  if(sort==='category') list.sort((a,b)=>(a.category||'').localeCompare(b.category||''));
+  return list;
+}
+function renderRig(){
+  const list=getFilteredImages(); gridCount.textContent=`(${list.length} shown of ${IMAGES.length})`; rigGrid.innerHTML='';
+  list.forEach(it=>{
+    const card=div('rig-item'); card.dataset.id=it.id;
+    const img=new Image(); img.src=OBJECT_URLS.get(it.id);
+    const tag=span('tag'); tag.textContent=it.category||'—';
+    const ex=button('exclude-btn pill',(it.weight??DEFAULT_WEIGHT)==0?'Include':'Exclude'); ex.onclick=(e)=>{e.stopPropagation();toggleExclude(it)};
+    const meta=div('meta');
+    const idrow=div(); idrow.textContent=`ID: ${it.id}`;
+
+    const row1=div();
+    const sel=document.createElement('select');
+    sel.appendChild(new Option('— Unassigned —','')); CATEGORIES.forEach(c=>sel.appendChild(new Option(c,c)));
+    sel.value=it.category||''; sel.onchange=async ()=>{ it.category=sel.value; categoryOverrides[it.id]=it.category; lsSet(LSK.categories,categoryOverrides); await dbUpdate(it); tag.textContent=it.category||'—'; };
+
+    const w=inputNumber(it.weight??DEFAULT_WEIGHT); w.onchange=()=>{ const val=Math.max(0,parseFloat(w.value)||0); it.weight=val; weightOverrides[it.id]=val; lsSet(LSK.weights,weightOverrides); ex.textContent=val==0?'Include':'Exclude'; };
+
+    row1.append(sel,' ',w);
+
+    const d=document.createElement('input'); d.placeholder='Name'; d.value=it.description||''; d.onchange=()=>{ it.description=d.value.trim(); descOverrides[it.id]=it.description; lsSet(LSK.descriptions,descOverrides); };
+
+    // Ratings: tap stars to set (Diff / Her-O / His-O)
+    const r1=starRow(it,'diff','Diff'), r2=starRow(it,'her','Her-O'), r3=starRow(it,'him','His-O');
+
+    meta.append(idrow,row1,d,r1,r2,r3);
+    card.append(img,tag,ex,meta);
+
+    // Fast Tag tap
+    card.addEventListener('click', ()=>{
+      if(!fastTagEnable.checked){ navigator.clipboard?.writeText(it.id).catch(()=>{}); toast('ID copied'); return; }
+      const cat=fastTagCategory.value, name=(fastTagName.value||'').trim();
+      it.category=cat; categoryOverrides[it.id]=cat; lsSet(LSK.categories,categoryOverrides); sel.value=cat; tag.textContent=cat||'—';
+      if(name){ it.description=name; descOverrides[it.id]=name; lsSet(LSK.descriptions,descOverrides); d.value=name; }
+      dbUpdate(it); toast('Applied');
+    });
+
+    rigGrid.appendChild(card);
+  });
+}
+function starRow(it,key,label){
+  const row=div('row'); const lbl=span(); lbl.textContent=label+':'; row.append(lbl);
+  for(let i=1;i<=5;i++){ const s=span(); s.textContent='★'; s.style.cursor='pointer'; s.style.opacity=(i<=(it[key]||0))?'1':'0.35';
+    s.onclick=()=>{ it[key]=i; ratings[it.id]=ratings[it.id]||{diff:0,her:0,him:0}; ratings[it.id][key]=i; lsSet(LSK.ratings,ratings); dbUpdate(it);
+      [...row.querySelectorAll('span')].slice(1).forEach((el,idx)=> el.style.opacity=((idx+1)<=i)?'1':'0.35'); };
+    row.append(s);
+  }
+  return row;
+}
+function toggleExclude(it){ const nw=(it.weight??DEFAULT_WEIGHT)==0?1:0; it.weight=nw; ratings[it.id]=ratings[it.id]||{diff:it.diff,her:it.her,him:it.him}; weightOverrides[it.id]=nw; lsSet(LSK.weights,weightOverrides); renderRig(); }
+
+/* ===== Spin / Animation ===== */
+let spinning=false, blockUntil=0, timerId=null;
+spinBtn.addEventListener('click', async ()=>{
+  ensureAudio(); await resumeAudio();
+  if(spinning||Date.now()<blockUntil){return}
+  if(!IMAGES.length){toast('Add images first');return}
+
+  spinning=true;
+  revealNameEl.textContent=''; diffStarsEl.textContent='☆☆☆☆☆'; herStarsEl.textContent='☆☆☆☆☆'; himStarsEl.textContent='☆☆☆☆☆';
+  revealBig.classList.add('hidden'); revealImg.removeAttribute('src');
+  playSpinStart();
+
+  const chosen=await pickImage();
+  let others=IMAGES.filter(x=>x.id!==chosen.id); if(others.length<2) others=IMAGES.concat(IMAGES); shuffle(others);
+  const finals=[others[0], chosen, others[1]];
+
+  const strips=[...document.querySelectorAll('.strip')];
+  const BASE=20, CELLH=156, ease='cubic-bezier(.12,.62,.22,.99)';
+  strips.forEach((strip,i)=>{
+    strip.innerHTML='';
+    const pool=IMAGES.slice();
+    for(let k=0;k<BASE;k++){ const it=pool[(k+i)%pool.length]; const cell=div('cell'); const img=new Image(); img.src=OBJECT_URLS.get(it.id); cell.appendChild(img); strip.appendChild(cell); }
+    const end=div('cell'); const endImg=new Image(); endImg.src=OBJECT_URLS.get(finals[i].id); end.appendChild(endImg); strip.appendChild(end);
+    strip.style.transition='none'; strip.style.transform='translateY(0px)'; strip.style.filter='blur(6px) brightness(0.9)';
+    const distance=CELLH*BASE;
+    setTimeout(()=>{ strip.style.transition=`transform ${SPIN_DURATION_MS/1000}s ${ease}, filter ${SPIN_DURATION_MS/1000}s linear`; strip.style.transform=`translateY(-${distance}px)`; }, 0);
+  });
+  for(let t=0;t<SPIN_DURATION_MS*0.6;t+=280){ playTick(t/1000); }
+
+  setTimeout(()=>{
+    document.querySelectorAll('.strip').forEach(s=>s.style.filter='none');
+    playReveal();
+    revealNameEl.textContent=chosen.description||chosen.category||'';
+    revealImg.src=OBJECT_URLS.get(chosen.id);
+    revealBig.classList.remove('hidden');
+    diffStarsEl.textContent=stars(chosen.diff||0);
+    herStarsEl .textContent=stars(chosen.her ||0);
+    himStarsEl .textContent=stars(chosen.him||0);
+    spinning=false;
+    if(timerMinutes>0) startCountdown(timerMinutes);
+  }, SPIN_DURATION_MS + 60);
+});
+async function pickImage(){
+  if(rigQueue.length){
+    const id=rigQueue.shift(); lsSet(LSK.queue,rigQueue); renderQueue();
+    const it = IMAGES.find(x=>x.id===id);
+    if(it) return it;
+  }
+  let pool=IMAGES.slice();
+  if(rigCategory){ if(rigCategory==='__UNASSIGNED__') pool=pool.filter(i=>!(i.category||'')); else pool=pool.filter(i=>(i.category||'')===rigCategory); }
+  if(!pool.length) return IMAGES[0];
+  const weights=pool.map(it=>Math.max(0.0001, it.weight??DEFAULT_WEIGHT)), total=weights.reduce((a,b)=>a+b,0);
+  let r=Math.random()*total; for(let i=0;i<pool.length;i++){ if((r-=weights[i])<=0) return pool[i]; }
+  return pool[pool.length-1];
+}
+
+/* ===== Countdown + Skip ===== */
+function clearCountdownAndUnlock(){ if(timerId) clearInterval(timerId); timerId=null; blockUntil=0; spinBtn.disabled=false; countdownEl.textContent=''; skipBtn.style.display='none'; }
+function startCountdown(mins){ const dur=mins*60*1000; blockUntil=Date.now()+dur; spinBtn.disabled=true; if(timerId)clearInterval(timerId); updateCountdown(); skipBtn.style.display='inline-flex';
+  timerId=setInterval(async ()=>{ updateCountdown(); if(Date.now()>=blockUntil){ clearInterval(timerId); timerId=null; spinBtn.disabled=false; countdownEl.textContent=''; skipBtn.style.display='none'; await playTimerChime(); } }, 250); }
+function updateCountdown(){ const r=Math.max(0,blockUntil-Date.now()); const s=Math.ceil(r/1000), m=Math.floor(s/60), ss=String(s%60).padStart(2,'0'); countdownEl.textContent=`Next spin in ${m}:${ss}`; }
+skipBtn.addEventListener('click', clearCountdownAndUnlock);
+
+/* ===== Queue UI ===== */
+function renderQueue(){ queueView.innerHTML=''; rigQueue.forEach((q,i)=>{ const pill=document.createElement('span'); pill.className='pill'; pill.textContent=`#${i+1} ${q}`; pill.style.cursor='pointer'; pill.title='Remove'; pill.onclick=()=>{rigQueue.splice(i,1); lsSet(LSK.queue,rigQueue); renderQueue();}; queueView.appendChild(pill); }); }
+
+/* ===== Secret access on title (double-tap or long-press) with prompt PIN ===== */
+function secretAccessOnTitle(){
+  const DT=350, LONG=800;
+  let lastTap=0, pressTimer=null;
+  function onTouchStart(){ clearTimeout(pressTimer); pressTimer=setTimeout(async ()=>{ lastTap=0; await openRigWithPIN(); }, LONG); }
+  function onTouchEnd(e){ clearTimeout(pressTimer); const now=Date.now(); if(now-lastTap<DT){ e.preventDefault(); lastTap=0; openRigWithPIN(); return;} lastTap=now; }
+  titleTap.addEventListener('touchstart',onTouchStart,{passive:true});
+  titleTap.addEventListener('touchend',onTouchEnd,{passive:false});
+  titleTap.addEventListener('dblclick',(e)=>{ e.preventDefault(); openRigWithPIN(); });
+  titleTap.addEventListener('mousedown',()=>{ clearTimeout(pressTimer); pressTimer=setTimeout(()=>openRigWithPIN(), LONG); });
+  titleTap.addEventListener('mouseup',()=> clearTimeout(pressTimer));
+}
+async function openRigWithPIN(){
+  const pin = window.prompt('Enter PIN');
+  if(pin==="1616") rigSheet.classList.remove('hidden'); else if(pin!==null) toast('Wrong PIN',true);
+}
+
+/* ===== Small helpers ===== */
+function div(c){const e=document.createElement('div'); if(c)e.className=c; return e}
+function span(c){const e=document.createElement('span'); if(c)e.className=c; return e}
+function button(c,t){const e=document.createElement('button'); if(c)e.className=c; if(t)e.textContent=t; return e}
+function inputNumber(val){const e=document.createElement('input'); e.type='number'; e.min='0'; e.step='0.1'; e.style.width='80px'; e.value=val; return e}
+
+/* iOS audio unlock */
+document.addEventListener('touchend',()=>ensureAudio(),{passive:true});
+</script>
+</body>
+</html>
