@@ -13,10 +13,15 @@
     --accent:#d79ab8; --accent2:#7ad1cc;
     --text:#f2f2f5; --muted:#a9abbb; --line:#24253a;
   }
-  html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,Inter,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+
   /* Top bar */
-  header{position:sticky;top:0;z-index:5;background:linear-gradient(180deg,rgba(11,11,15,.98),rgba(11,11,15,.7) 70%,rgba(11,11,15,0));backdrop-filter:blur(8px);border-bottom:1px solid #1b1c2a}
-  .topbar{position:relative;max-width:1100px;margin:0 auto;display:flex;gap:10px;align-items:center;justify-content:space-between;touch-action:manipulation;padding:calc(env(safe-area-inset-top) + 14px) 14px 10px}
+  header{position:sticky;top:0;z-index:5;
+    background:linear-gradient(180deg,rgba(11,11,15,.98),rgba(11,11,15,.7) 70%,rgba(11,11,15,0));
+    backdrop-filter:blur(8px);border-bottom:1px solid #1b1c2a}
+  .topbar{position:relative;max-width:1100px;margin:0 auto;display:flex;gap:10px;align-items:center;justify-content:space-between;touch-action:manipulation;
+    padding:calc(env(safe-area-inset-top) + 14px) 14px 10px}
   .title-wrap{display:flex;align-items:center;gap:8px}
   .title-tappable{-webkit-user-select:none;user-select:none;font-weight:700;letter-spacing:.3px;font-size:19px;padding:6px 8px;border-radius:8px}
   .rig-mini{width:6px;height:6px;border-radius:999px;border:1px solid #2a2b40;background:#1a1a28;opacity:.7;display:inline-block;margin-top:4px}
@@ -26,6 +31,7 @@
   button.primary{background:linear-gradient(180deg,#272737,#1b1b28);border-color:#2b2c3d}
   button:disabled{opacity:.5}
   .pill{background:#1a1a28;border:1px solid #2a2b40;border-radius:999px;padding:6px 10px;font-size:12px;color:#ddd}
+
   /* Upload: input overlays button so iOS PWA always fires the picker */
   #uploadWrap{position:relative;overflow:hidden}
   #uploadWrap input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;-webkit-appearance:none}
@@ -80,6 +86,9 @@
   .tag{position:absolute;left:6px;top:6px;background:#1a1a28;border:1px solid #2a2b40;border-radius:999px;padding:2px 6px;font-size:11px}
   .exclude-btn{position:absolute;right:6px;top:6px;border-radius:999px;padding:2px 6px;font-size:11px}
   .hint{font-size:12px;color:var(--muted)}
+
+  /* Debug: show button if body.debug */
+  body.debug #rigDebugBtn{display:inline-flex !important}
 </style>
 </head>
 <body>
@@ -110,6 +119,9 @@
         🎯
         <select id="mainRestrict" title="Restrict Category"></select>
       </label>
+
+      <!-- Debug opener (shown only with ?debug=1) -->
+      <button id="rigDebugBtn" class="pill" style="display:none">Rig</button>
 
       <button id="spinBtn" class="primary">🎰 Spin</button>
     </div>
@@ -143,7 +155,7 @@
   </section>
 </div>
 
-<!-- Rig SHEET -->
+<!-- Rig SHEET (PWA-safe) -->
 <div id="rigSheet" class="sheet hidden" aria-hidden="true">
   <div id="rigBackdrop" class="backdrop"></div>
   <div class="panel">
@@ -239,13 +251,14 @@ async function playTimerChime(){ await resumeAudio(); tone(660,0.35,'sine',0.5,0
 
 /* ===== UI Refs ===== */
 const fileInput=q('#fileInput'), uploadWrap=q('#uploadWrap');
-const reelsEl=q('#reels'), spinBtn=q('#spinBtn');
+const spinBtn=q('#spinBtn');
 const revealNameEl=q('#revealName'), revealBig=q('#revealBig'), revealImg=q('#revealImg');
 const diffStarsEl=q('#diffStars'), herStarsEl=q('#herStars'), himStarsEl=q('#himStars');
 const countdownEl=q('#countdown'), skipBtn=q('#skipBtn');
 const timerSelect=q('#timerSelect'), mainRestrict=q('#mainRestrict');
 const rigSheet=q('#rigSheet'), rigBackdrop=q('#rigBackdrop'), rigClose=q('#rigClose');
 const titleTap=q('#titleTap'), rigMini=q('#rigMini');
+const rigDebugBtn=q('#rigDebugBtn');
 
 const rigGrid=q('#rigGrid'), rigCategorySel=q('#rigCategory'), queueView=q('#queueView');
 const queueId=q('#queueId'), queueAddId=q('#queueAddId'), queueClear=q('#queueClear');
@@ -256,7 +269,13 @@ const applySetCategory=q('#applySetCategory'), applyIncludeAll=q('#applyIncludeA
 const gridCount=q('#gridCount');
 
 /* ===== DB ===== */
-function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,2);r.onupgradeneeded=(e)=>{const db=e.target.result;if(!db.objectStoreNames.contains(DB_STORE)){const s=db.createObjectStore(DB_STORE,{keyPath:'id'});s.createIndex('category','category');s.createIndex('ts','ts');} };r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,2);
+  r.onupgradeneeded=(e)=>{const db=e.target.result;
+    if(!db.objectStoreNames.contains(DB_STORE)){
+      const s=db.createObjectStore(DB_STORE,{keyPath:'id'});
+      s.createIndex('category','category'); s.createIndex('ts','ts');
+    }};
+  r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);});}
 function dbAddMany(items){return new Promise((res,rej)=>{const tx=db.transaction(DB_STORE,'readwrite'),st=tx.objectStore(DB_STORE);items.forEach(it=>st.put(it));tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});}
 function dbGetAll(){return new Promise((res,rej)=>{const tx=db.transaction(DB_STORE,'readonly'),st=tx.objectStore(DB_STORE),rq=st.getAll();rq.onsuccess=()=>res(rq.result||[]);rq.onerror=()=>rej(rq.error);});}
 function dbUpdate(item){return new Promise((res,rej)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put(item);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});}
@@ -272,6 +291,14 @@ function stars(n){ n=Math.max(0,Math.min(5,n||0)); return '★'.repeat(n)+'☆'.
 
 /* ===== Init ===== */
 (async function init(){
+  // Debug mode
+  const params=new URLSearchParams(location.search);
+  const isDebug=params.has('debug');
+  if(isDebug){ document.body.classList.add('debug'); }
+  // Small visible tag so we know code loaded
+  const tag=document.createElement('div'); tag.textContent='JS alive v2025.08.09b' + (isDebug?' (debug)':'');
+  Object.assign(tag.style,{position:'fixed',right:'8px',bottom:'6px',fontSize:'10px',color:'#9aa',opacity:.6,zIndex:9999,pointerEvents:'none'}); document.body.appendChild(tag);
+
   db=await openDB();
 
   // Build Restrict + pickers
@@ -319,10 +346,12 @@ function stars(n){ n=Math.max(0,Math.min(5,n||0)); return '★'.repeat(n)+'☆'.
   queueAddId.addEventListener('click',()=>{ const id=queueId.value.trim(); if(!id)return; rigQueue.push(id); lsSet(LSK.queue,rigQueue); queueId.value=''; renderQueue(); });
   queueClear.addEventListener('click',()=>{ rigQueue.length=0; lsSet(LSK.queue,rigQueue); renderQueue(); });
 
-  // Title gesture (PIN via prompt)
-  secretAccessOnTitle();
-  // Mini dot: instant open
-  rigMini.addEventListener('click', ()=>rigSheet.classList.remove('hidden'));
+  // Gestures
+  secretAccessOnTitle();             // double-tap or long-press + PIN
+  rigMini.addEventListener('click', ()=>rigSheet.classList.remove('hidden')); // tiny dot
+  if(rigDebugBtn){                   // debug button (visible only in ?debug=1)
+    rigDebugBtn.addEventListener('click', ()=>rigSheet.classList.remove('hidden'));
+  }
 
   await reloadImages(); buildReels(); renderRig(); renderQueue();
 })();
@@ -429,7 +458,7 @@ function starRow(it,key,label){
   }
   return row;
 }
-function toggleExclude(it){ const nw=(it.weight??DEFAULT_WEIGHT)==0?1:0; it.weight=nw; ratings[it.id]=ratings[it.id]||{diff:it.diff,her:it.her,him:it.him}; weightOverrides[it.id]=nw; lsSet(LSK.weights,weightOverrides); renderRig(); }
+function toggleExclude(it){ const nw=(it.weight??DEFAULT_WEIGHT)==0?1:0; it.weight=nw; weightOverrides[it.id]=nw; lsSet(LSK.weights,weightOverrides); renderRig(); }
 
 /* ===== Spin / Animation ===== */
 let spinning=false, blockUntil=0, timerId=null;
@@ -511,7 +540,7 @@ function secretAccessOnTitle(){
 }
 async function openRigWithPIN(){
   const pin = window.prompt('Enter PIN');
-  if(pin==="1616") rigSheet.classList.remove('hidden'); else if(pin!==null) toast('Wrong PIN',true);
+  if(pin===PIN) rigSheet.classList.remove('hidden'); else if(pin!==null) toast('Wrong PIN',true);
 }
 
 /* ===== Small helpers ===== */
